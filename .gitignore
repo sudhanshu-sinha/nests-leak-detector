@@ -1,0 +1,8 @@
+*.pdf
+*.db
+*.log
+__pycache__/
+.env
+data.db
+leaked_*
+ts_*
