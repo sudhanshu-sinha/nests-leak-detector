@@ -2,7 +2,8 @@ name: NESTS Monitor
 
 on:
   schedule:
-    - cron: '*/2 * * * *'
+    - cron: '*/2 * * * *'  # every 2 mins UTC
+    - cron: '1-59/2 * * * *'  # offset 1 min for more reliability
   workflow_dispatch:
     inputs:
       test_mode:
@@ -13,6 +14,8 @@ on:
         options:
           - 'false'
           - 'true'
+  push:
+    branches: [main]
 
 jobs:
   run:
