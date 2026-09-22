@@ -23,7 +23,11 @@ UA = [
 ]
 
 def log(m):
-    print(f"[{datetime.now().strftime('%H:%M:%S')}] {m}")
+    # Indian time IST = UTC+5:30
+    from datetime import timezone, timedelta
+    IST = timezone(timedelta(hours=5, minutes=30))
+    now_ist = datetime.now(IST)
+    print(f"[{now_ist.strftime('%d-%m-%Y %I:%M:%S %p IST')}] {m}")
 
 def init_db():
     conn = sqlite3.connect(DB)
@@ -63,10 +67,13 @@ async def send_tg(session, file_url, pdf_file=None):
     if pdf_file and Path(pdf_file).exists():
         url = f"https://api.telegram.org/bot{TOKEN}/sendDocument"
         try:
+            from datetime import timezone, timedelta
+            IST = timezone(timedelta(hours=5, minutes=30))
+            now_ist = datetime.now(IST).strftime('%d-%m-%Y %I:%M %p IST')
             with open(pdf_file, 'rb') as f:
                 data = aiohttp.FormData()
                 data.add_field('chat_id', CHAT_ID)
-                data.add_field('caption', f"New PDF found on NESTS server!\n\nLink: {file_url}\nTime: {datetime.now().strftime('%d-%m-%Y %I:%M %p')}\n\n#ESSE2025")
+                data.add_field('caption', f"New PDF found on NESTS server!\n\nLink: {file_url}\nTime: {now_ist}\n\n#ESSE2025")
                 data.add_field('document', f, filename=Path(pdf_file).name, content_type='application/pdf')
                 async with session.post(url, data=data, timeout=30) as resp:
                     if resp.status == 200:
@@ -76,8 +83,11 @@ async def send_tg(session, file_url, pdf_file=None):
             log(f"doc send err {e}")
 
     # fallback text
+    from datetime import timezone, timedelta
+    IST = timezone(timedelta(hours=5, minutes=30))
+    now_ist = datetime.now(IST).strftime('%d-%m-%Y %I:%M:%S %p IST')
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
-    text = f"New PDF uploaded on NESTS!\n\n{file_url}\n\nTime: {datetime.now().strftime('%d-%m-%Y %I:%M:%S %p')}\n\nDownload now, not yet on website."
+    text = f"New PDF uploaded on NESTS!\n\n{file_url}\n\nTime: {now_ist}\n\nDownload now, not yet on website."
     try:
         async with session.post(url, data={"chat_id": CHAT_ID, "text": text}, timeout=15) as resp:
             if resp.status == 200:
@@ -198,10 +208,13 @@ async def test_telegram():
     if not TOKEN or not CHAT_ID:
         log("ERROR: TELEGRAM_BOT_TOKEN or CHAT_ID not set")
         return
+    from datetime import timezone, timedelta
+    IST = timezone(timedelta(hours=5, minutes=30))
+    now_ist = datetime.now(IST).strftime('%d-%m-%Y %I:%M %p IST')
     log(f"testing telegram with chat_id {CHAT_ID}")
     async with aiohttp.ClientSession() as session:
         url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
-        text = f"✅ NESTS Bot Test OK!\n\nYour bot is perfectly working.\nTime: {datetime.now().strftime('%d-%m-%Y %I:%M %p')}\n\nCurrent max ID on site: 1041\nLast PDF: 18 Sep 2026 (1789749299.pdf)\nNext PDF expected anytime now.\n\nWhen new PDF uploads, you will get it here in 2 mins.\n\n#Test"
+        text = f"✅ NESTS Bot Test OK!\n\nYour bot is perfectly working.\nTime: {now_ist}\n\nCurrent max ID on site: 1041\nLast PDF: 18 Sep 2026 (1789749299.pdf)\nNext PDF expected anytime now.\n\nWhen new PDF uploads, you will get it here in 2 mins.\n\n#Test"
         try:
             async with session.post(url, data={"chat_id": CHAT_ID, "text": text}, timeout=15) as resp:
                 txt = await resp.text()
