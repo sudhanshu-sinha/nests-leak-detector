@@ -193,9 +193,31 @@ async def loop():
             log(f"err {e}")
             await asyncio.sleep(10)
 
+async def test_telegram():
+    # test if telegram working
+    if not TOKEN or not CHAT_ID:
+        log("ERROR: TELEGRAM_BOT_TOKEN or CHAT_ID not set")
+        return
+    log(f"testing telegram with chat_id {CHAT_ID}")
+    async with aiohttp.ClientSession() as session:
+        url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
+        text = f"✅ NESTS Bot Test OK!\n\nYour bot is perfectly working.\nTime: {datetime.now().strftime('%d-%m-%Y %I:%M %p')}\n\nCurrent max ID on site: 1041\nLast PDF: 18 Sep 2026 (1789749299.pdf)\nNext PDF expected anytime now.\n\nWhen new PDF uploads, you will get it here in 2 mins.\n\n#Test"
+        try:
+            async with session.post(url, data={"chat_id": CHAT_ID, "text": text}, timeout=15) as resp:
+                txt = await resp.text()
+                log(f"telegram response {resp.status}: {txt[:200]}")
+                if resp.status == 200:
+                    log("✅ TEST PASSED - Check your Telegram now!")
+                else:
+                    log("❌ TEST FAILED - Check token/chat_id, and send /start to your bot")
+        except Exception as e:
+            log(f"test err {e}")
+
 if __name__ == "__main__":
     import sys
-    if "--loop" in sys.argv:
+    if "--test" in sys.argv:
+        asyncio.run(test_telegram())
+    elif "--loop" in sys.argv:
         asyncio.run(loop())
     else:
         asyncio.run(one_scan())
