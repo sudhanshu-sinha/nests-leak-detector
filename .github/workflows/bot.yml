@@ -4,6 +4,15 @@ on:
   schedule:
     - cron: '*/2 * * * *'
   workflow_dispatch:
+    inputs:
+      test_mode:
+        description: 'Send test telegram message'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
 
 jobs:
   run:
@@ -14,7 +23,16 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install -r requirements.txt
-      - name: run bot
+      
+      - name: Test Telegram (if selected)
+        if: ${{ inputs.test_mode == 'true' }}
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python bot.py --test
+
+      - name: Run bot scan
+        if: ${{ inputs.test_mode != 'true' }}
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
